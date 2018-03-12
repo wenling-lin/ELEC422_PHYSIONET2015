@@ -45,7 +45,7 @@ ALARM_RESULTS=RECLIST{3};
 N=length(RECORDS);
 results=zeros(N,1);
 %%
-
+fprintf(fileID1, 'Script ran on: ');
 fprintf(fileID1, datestr(now,'HH:MM:SS.FFF\n\n'));
 fprintf(fileID2,datestr(now,'HH:MM:SS.FFF\n\n'));
 
@@ -106,7 +106,6 @@ for i = 1:length(RECORDS)
         fprintf(fileID1, '\n');
         n_falsen = n_falsen + 1;
     end
-    
 end;
 
 challenge_score = n_correct / (n_correct + n_falsep + 5*n_falsen);

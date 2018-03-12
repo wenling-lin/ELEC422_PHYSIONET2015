@@ -121,7 +121,7 @@ if(length(ecg1) < N_d)
     alarmResult = 0;
     return;
 end
-%% Find the Beats and Heart Rate from each Channel
+%% Find the Beats and calculate Heart Rate from each Channel
 % select the beats in the segment
 n_abp_beats=intersect(find(ann_abp>=N0_d),find(ann_abp<=N_d));
 n_ppg_beats=intersect(find(ann_ppg>=N0_d),find(ann_ppg<=N_d));
@@ -149,12 +149,12 @@ if length(n_abp_beats)>=2
     abp_f = abp_f(N0_d:N_d);
     [abp_pks,abp_locs] = findpeaks(abp_f, 'MinPeakHeight', 1.25* mean(abs(abp_f)));
     %findpeaks(abp_f, 'MinPeakHeight', 1.25 * mean(abs(abp_f)));
-    ecg_minpkdistance = min(abp_locs); % Use this minimum peak distance later for ecg peak detector
-   
+    
     if( alarm_type == 'Asystole' )
-        abp_locs = horzcat(abp_locs, (N_d - N0_d + 1));
+        abp_locs = vertcat(abp_locs, (N_d - N0_d + 1));
     end
     
+    ecg_minpkdistance = min(abp_locs); % Use this minimum peak distance later for ecg peak detector    
     hr_max_abp_pk2pk = 60*Fs/min(diff(abp_locs));
     pk2pk_abp_HR = 60*Fs ./ diff(abp_locs)
     % Determine standard deviation and remove heart rate +/- less than 
@@ -245,7 +245,7 @@ end
     if( length(ecg1_locs) > 1 )
         
         if( alarm_type == 'Asystole' )
-            ecg1_locs = vcat(ecg1_locs, (N_d - N0_d + 1));
+            ecg1_locs = horzcat(ecg1_locs, (N_d - N0_d + 1));
         end
         
         hr_max_ecg_pk2pk = 60*Fs/min(diff(ecg1_locs));
@@ -351,6 +351,8 @@ if(length(ecg1_locs) > 1)
     end
 end
 
+%%  Signal from cleanest channel has been selected - Calculate Heart Rate and Detect Arrythmia Type
+
 smallest_delta
 selected_signal
 % Recalculate hr_max and max_rr
@@ -368,7 +370,30 @@ end
         
 hr_max=60*Fs/min(selected_signal);
 max_rr=max(selected_signal)/Fs;
+% 
+% % Bradycardia
+% % calculate low heart rate of 5 consecutive beats for Bradycardia
+% low_hr_selected_signal=NaN;
+% low_hr_ppg=NaN;
+% if length(selected_signal>=5)
+%     for i=1:length(selected_signal)-4
+%         low_hr_selected_signal(i)=60*Fs/((selected_signal(i+4)-selected_signal(i))/4);
+%     end
+% end
+% low_hr_abp=min(low_hr_abp);
+% if length(n_ppg_beats>=5)
+%     for i=1:length(n_ppg_beats)-4
+%         low_hr_ppg(i)=60*Fs/((ann_ppg(n_ppg_beats(i+4))-ann_ppg(n_ppg_beats(i)))/4);
+%     end
+% end
+% low_hr_ppg=min(low_hr_ppg);
 
+%% Bradycardia
+if length(selected_signal) >= 5 
+    for i = 1:length(slected_signal
+        
+    end
+end
 
 %% Decision Making -- Suppress or Don't Suppress Alarm 
 
@@ -393,7 +418,9 @@ switch alarm_type
         else
             alarmResult = 'True Alarm'
             alarmResult = 1;
-        end   
+        end
+    case 'Bradycardia'
+
     otherwise
         error(['Unknown alarm type: ' alarm_type])
 end

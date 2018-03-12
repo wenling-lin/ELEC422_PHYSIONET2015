@@ -8,7 +8,7 @@
 % Pre-Processing Filter Specs Used: http://www.cinc.org/archives/2015/pdf/1181.pdf
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %function alarmResult=challenge(recordName,alarm_type)
-function alarmResult =challenge_(recordName, alarm_type, fileID);
+function alarmResult =challenge_(recordName, alarm_type);
 %clear; clear all; clc;
 answers = 'answers.txt';
 % recordName = 'a311l'; Good Data across all channels
@@ -121,7 +121,7 @@ if(length(ecg1) < N_d)
     alarmResult = 0;
     return;
 end
-%% Find the Beats and Heart Rate from each Channel
+%% Find the Beats and calculate Heart Rate from each Channel
 % select the beats in the segment
 n_abp_beats=intersect(find(ann_abp>=N0_d),find(ann_abp<=N_d));
 n_ppg_beats=intersect(find(ann_ppg>=N0_d),find(ann_ppg<=N_d));
@@ -150,7 +150,7 @@ if length(n_abp_beats)>=2
     [abp_pks,abp_locs] = findpeaks(abp_f, 'MinPeakHeight', 1.25* mean(abs(abp_f)));
     %findpeaks(abp_f, 'MinPeakHeight', 1.25 * mean(abs(abp_f)));
     
-    if( alarm_type == 'Asystole' )
+    if( strcmp(alarm_type,'Asystole') )
         abp_locs = vertcat(abp_locs, (N_d - N0_d + 1));
     end
     
@@ -187,7 +187,7 @@ if length(n_ppg_beats)>=2
     %findpeaks(ppg_f, 'MinPeakHeight', 1.25 * mean(abs(ppg_f)))
     ecg_minpkdistance = min(ppg_locs); % Use this minimum peak distance later for ecg peak detector
     
-    if( alarm_type == 'Asystole' )
+    if( strcmp(alarm_type,'Asystole') )
         ppg_locs = vertcat(ppg_locs, (N_d - N0_d + 1));
     end
     
@@ -244,7 +244,7 @@ end
 
     if( length(ecg1_locs) > 1 )
         
-        if( alarm_type == 'Asystole' )
+        if( strcmp(alarm_type, 'Asystole') )
             ecg1_locs = horzcat(ecg1_locs, (N_d - N0_d + 1));
         end
         
@@ -351,6 +351,8 @@ if(length(ecg1_locs) > 1)
     end
 end
 
+%%  Signal from cleanest channel has been selected - Calculate Heart Rate and Detect Arrythmia Type
+
 smallest_delta
 selected_signal
 % Recalculate hr_max and max_rr
@@ -368,8 +370,39 @@ end
         
 hr_max=60*Fs/min(selected_signal);
 max_rr=max(selected_signal)/Fs;
+% 
+% % Bradycardia
+% % calculate low heart rate of 5 consecutive beats for Bradycardia
+% low_hr_selected_signal=NaN;
+% low_hr_ppg=NaN;
+% if length(selected_signal>=5)
+%     for i=1:length(selected_signal)-4
+%         low_hr_selected_signal(i)=60*Fs/((selected_signal(i+4)-selected_signal(i))/4);
+%     end
+% end
+% low_hr_abp=min(low_hr_abp);
+% if length(n_ppg_beats>=5)
+%     for i=1:length(n_ppg_beats)-4
+%         low_hr_ppg(i)=60*Fs/((ann_ppg(n_ppg_beats(i+4))-ann_ppg(n_ppg_beats(i)))/4);
+%     end
+% end
+% low_hr_ppg=min(low_hr_ppg);
 
-
+%% Bradycardia
+brady_thresh = 40;
+if length(selected_signal) >= 5
+    brady_count = 0;
+    for i = 1:length(selected_signal)
+        if( selected_signal(i) < brady_thresh )
+            brady_count = brady_count + 1;
+            if brady_count == 5
+                break;
+            end
+        else
+            brady_count = 0;
+        end
+    end
+end
 %% Decision Making -- Suppress or Don't Suppress Alarm 
 
 % Alarm threshold (seconds)
@@ -393,7 +426,9 @@ switch alarm_type
         else
             alarmResult = 'True Alarm'
             alarmResult = 1;
-        end   
+        end
+    case 'Bradycardia'
+
     otherwise
         error(['Unknown alarm type: ' alarm_type])
 end
