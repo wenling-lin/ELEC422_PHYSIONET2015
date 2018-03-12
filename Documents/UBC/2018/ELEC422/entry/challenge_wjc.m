@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ELEC 422 - Physionet 2015 Challenge
 % Authors:  Wen-Ling Lin (31120132)
-%           Janelle Sommerville ()
-%           Claire Chang ()
+%           Janelle Somerville (52155132)
+%           Claire Chang (35340132)
 %
 % Sources Used: 
 % Pre-Processing Filter Specs Used: http://www.cinc.org/archives/2015/pdf/1181.pdf
