@@ -1,0 +1,99 @@
+Script ran on: 21:27:53.224
+
+b124s: True Alarm => Correct
+b125l: True Alarm => Correct
+b126s: True Alarm => Correct
+b183l: True Alarm => Correct
+b184s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b187l: True Alarm => Correct
+b215l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b216s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b220s: False Alarm => False Negative => Calculated False Alarm but Expected True Alarm
+b227l: True Alarm => Correct
+b228s: True Alarm => Correct
+b229l: True Alarm => Correct
+b231l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b265l: True Alarm => Correct
+b268s: True Alarm => Correct
+b269l: True Alarm => Correct
+b285l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b286s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b299l: True Alarm => Correct
+b308s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b313l: True Alarm => Correct
+b314s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b330s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b331l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b332s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b339l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b340s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b341l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b349l: False Alarm => Correct
+b379l: True Alarm => Correct
+b387l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b388s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b389l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b428s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b451l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b455l: True Alarm => Correct
+b456s: True Alarm => Correct
+b484s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b485l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b486s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b487l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b488s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b494s: True Alarm => Correct
+b495l: True Alarm => Correct
+b497l: True Alarm => Correct
+b515l: True Alarm => Correct
+b516s: True Alarm => Correct
+b517l: True Alarm => Correct
+b528s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b537l: True Alarm => Correct
+b538s: True Alarm => Correct
+b553l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b554s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b560s: True Alarm => Correct
+b561l: True Alarm => Correct
+b562s: True Alarm => Correct
+b578s: False Alarm => False Negative => Calculated False Alarm but Expected True Alarm
+b587l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b588s: True Alarm => Correct
+b600s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b617l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b656s: True Alarm => Correct
+b659l: True Alarm => Correct
+b664s: True Alarm => Correct
+b669l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b672s: False Alarm => False Negative => Calculated False Alarm but Expected True Alarm
+b681l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b684s: False Alarm => Correct
+b685l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b695l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b703l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b706s: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b708s: True Alarm => Correct
+b722s: True Alarm => Correct
+b730s: True Alarm => Correct
+b734s: True Alarm => Correct
+b753l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b757l: True Alarm => Correct
+b764s: True Alarm => Correct
+b794s: True Alarm => Correct
+b820s: True Alarm => Correct
+b824s: False Alarm => Correct
+b832s: True Alarm => Correct
+b835l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b838s: True Alarm => Correct
+b839l: True Alarm => Correct
+b840s: True Alarm => Correct
+b841l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+b849l: True Alarm => False Positive => Calculated True Alarm but Expected False Alarm
+=========================================================================
+Correct: 46/89 (51.685393)
+Incorrect: 43/89 (48.314607)
+False Positive: 40/89 (44.943820) => Calculated True but Expected False
+False Negative: 3/89 (3.370787) => Calculated False but Expected True
+Total Files Processed: 89
+Challenge 2015 Score: 0.455446
+=========================================================================

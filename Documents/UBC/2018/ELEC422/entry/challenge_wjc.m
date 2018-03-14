@@ -31,6 +31,7 @@ answers = 'answers.txt';
 % recordName = 'a391l'; % One peak but top of a curve (ECG) false asystole
 % recordName = 'a443l'; % One peak but true asystole
 
+%%
 %Get all ECG, blood pressure and photoplethysmogram signals
 [~,signal,Fs,siginfo]=rdmat(recordName);
 alarmResult=1;
@@ -51,14 +52,26 @@ end
 ecg1_ind = get_index(description, 'II');
 ecg1 = signal(:,ecg1_ind);
 ecg1 = ecg1(~isnan(ecg1));
-%ecg1 = ecg1(N0_d:N_d);
 
 % ECG V
 ecg2_ind = get_index(description,'V');
 ecg2 = signal(:,ecg2_ind);
-%ecg2 = ecg2(N0_d:N_d);
 
 ecg_signal = ecg1';
+
+% set valid data segment for decision making, 16s before the alarm
+%N_d=Fs*5*60; % alarm position % 5 minute point
+%N0_d=N_d-Fs*16+1; % 16s before the alarm % 16 seconds before 5 minute point
+
+N_d=Fs*5*60; % alarm position % 5 minute point
+N0_d=N_d-Fs*16; % 16s before the alarm % 16 seconds before 5 minute point
+
+if(length(ecg1) < N_d)
+    alarmResult = 'False Alarm'
+    alarmResult = 0;
+    return;
+end
+
 %ecg_signal = ecg_signal(ecg_signal != NaN);
 [C,L]=wavedec(ecg_signal,8,'db4'); % [approx, detail] as per lecture
 [thr,sorh,keepapp]=ddencmp('den','wv',ecg_signal);
@@ -113,14 +126,15 @@ if (~isempty(ppg_ind))
     end
 end
 
-% set valid data segment for decision making, 16s before the alarm
-N_d=Fs*5*60; % alarm position % 5 minute point
-N0_d=N_d-Fs*16+1; % 16s before the alarm % 16 seconds before 5 minute point
+% % set valid data segment for decision making, 16s before the alarm
+% N_d=Fs*5*60; % alarm position % 5 minute point
+% N0_d=N_d-Fs*16+1; % 16s before the alarm % 16 seconds before 5 minute point
 
-if(length(ecg1) < N_d)
-    alarmResult = 0;
-    return;
-end
+% if(length(ecg1) < N_d)
+%     alarmResult = 'False Alarm'
+%     alarmResult = 0;
+%     return;
+% end
 %% Find the Beats and calculate Heart Rate from each Channel
 % select the beats in the segment
 n_abp_beats=intersect(find(ann_abp>=N0_d),find(ann_abp<=N_d));
@@ -148,7 +162,7 @@ if length(n_abp_beats)>=2
     % Restrict to window of 16 seconds before alarm
     abp_f = abp_f(N0_d:N_d);
     [abp_pks,abp_locs] = findpeaks(abp_f, 'MinPeakHeight', 1.25* mean(abs(abp_f)));
-    %findpeaks(abp_f, 'MinPeakHeight', 1.25 * mean(abs(abp_f)));
+    findpeaks(abp_f, 'MinPeakHeight', 1.25 * mean(abs(abp_f)));
     
     if( strcmp(alarm_type,'Asystole') )
         abp_locs = vertcat(abp_locs, (N_d - N0_d + 1));
@@ -184,7 +198,7 @@ if length(n_ppg_beats)>=2
     % Restrict to window of 16 seconds before alarm
     ppg_f = ppg_f(N0_d:N_d);
     [ppg_pks, ppg_locs] = findpeaks(ppg_f, 'MinPeakHeight', 1.25 * mean(abs(ppg_f)));
-    %findpeaks(ppg_f, 'MinPeakHeight', 1.25 * mean(abs(ppg_f)))
+    findpeaks(ppg_f, 'MinPeakHeight', 1.25 * mean(abs(ppg_f)))
     ecg_minpkdistance = min(ppg_locs); % Use this minimum peak distance later for ecg peak detector
     
     if( strcmp(alarm_type,'Asystole') )
@@ -239,7 +253,7 @@ end
     if( ~hr_ecg_calculated )
         [ecg1_pks,ecg1_locs] = findpeaks(ecg1, 'MinPeakDistance', 1.25*ecg_minpkdistance );
         findpeaks(ecg1, 'MinPeakDistance', 1.25*ecg_minpkdistance );
-        findpeaks(ecg1, 'MinPeakHeight', max(ecg1)/2);
+        %findpeaks(ecg1, 'MinPeakHeight', max(ecg1)/2);
     end
 
     if( length(ecg1_locs) > 1 )
@@ -262,6 +276,7 @@ end
         % Add all HR into the channel median vector
         all_channel_HR = vertcat(all_channel_HR,pk2pk_ecg_HR)
     end
+    
 %% calculate the signal quality index
 if ~isempty(ann_abp)
     abpsqi=1-sum(sum(BEATQ(intersect(n_abp_beats,1:length(BEATQ)),:)))/numel(BEATQ(intersect(n_abp_beats,1:length(BEATQ)),:));
@@ -302,7 +317,7 @@ if (~isempty(abp_ind) & length(n_abp_beats)>=2)
     % Physionet is closer to mean
     if (physio_delta < pk2pk_delta )
         % Compare with whats been caculated (Physio is smallest) ABP
-        if(physio_delta < smallest_delta)
+        if(physio_delta < smallest_delta & abpsqi >= sqi_th) % Added the & !!! - March 12
             selected_signal = abp_phys_hr;
             smallest_delta = physio_delta;
             selected_channel = 'ABP';
@@ -332,7 +347,7 @@ if(~isempty(ppg_ind) & length(n_ppg_beats)>=2 )
         end
     else
         % Pk2pk is smallest PPG
-        if(pk2pk_delta < smallest_delta)
+        if(pk2pk_delta < smallest_delta & ppgsqi >= sqi_th) % Added the %
             selected_signal = pk2pk_ppg_HR;
             smallest_delta = pk2pk_delta;
             selected_channel = 'PPG';
@@ -351,6 +366,16 @@ if(length(ecg1_locs) > 1)
     end
 end
 
+% Extra Signal Check -- If ECG Channel is empty then take from abp or ppg 
+if isempty(selected_channel)
+    if( abpsqi ~= 0 )
+        selected_channel = 'abp';
+        selected_signal = pk2pk_abp_HR;
+    elseif( ppgsqi ~=0)
+        selected_channel = 'ppg';
+        selected_signal = pk2pk_ppg_HR;
+    end
+end
 %%  Signal from cleanest channel has been selected - Calculate Heart Rate and Detect Arrythmia Type
 
 smallest_delta
@@ -370,32 +395,20 @@ end
         
 hr_max=60*Fs/min(selected_signal);
 max_rr=max(selected_signal)/Fs;
-% 
-% % Bradycardia
-% % calculate low heart rate of 5 consecutive beats for Bradycardia
-% low_hr_selected_signal=NaN;
-% low_hr_ppg=NaN;
-% if length(selected_signal>=5)
-%     for i=1:length(selected_signal)-4
-%         low_hr_selected_signal(i)=60*Fs/((selected_signal(i+4)-selected_signal(i))/4);
-%     end
-% end
-% low_hr_abp=min(low_hr_abp);
-% if length(n_ppg_beats>=5)
-%     for i=1:length(n_ppg_beats)-4
-%         low_hr_ppg(i)=60*Fs/((ann_ppg(n_ppg_beats(i+4))-ann_ppg(n_ppg_beats(i)))/4);
-%     end
-% end
-% low_hr_ppg=min(low_hr_ppg);
 
 %% Bradycardia
-brady_thresh = 40;
-if length(selected_signal) >= 5
+% Redefine -> Under 50 beats
+% 3 Consecutive Less than 50
+brady_thresh = 50;
+isBrady = 0;
+brady_beats = 3;
+if length(selected_signal) >= brady_beats
     brady_count = 0;
     for i = 1:length(selected_signal)
         if( selected_signal(i) < brady_thresh )
             brady_count = brady_count + 1;
-            if brady_count == 5
+            if brady_count == brady_beats
+                isBrady = 1;
                 break;
             end
         else
@@ -403,6 +416,7 @@ if length(selected_signal) >= 5
         end
     end
 end
+
 %% Decision Making -- Suppress or Don't Suppress Alarm 
 
 % Alarm threshold (seconds)
@@ -428,7 +442,13 @@ switch alarm_type
             alarmResult = 1;
         end
     case 'Bradycardia'
-
+        if (isBrady == 1)            
+            alarmResult = 'True Alarm'
+            alarmResult = 1;
+        else
+            alarmResult = 'False Alarm'
+            alarmResult = 0;
+        end
     otherwise
         error(['Unknown alarm type: ' alarm_type])
 end

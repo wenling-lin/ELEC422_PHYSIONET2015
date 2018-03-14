@@ -1,11 +1,11 @@
-% Check Asystole
+% Check Bradycardia
 clear all;close all;clc
 data_dir=[pwd filesep];
 
 %% File Handling
 
-% Write results to the "asystole_results.txt" file
-fileName = 'asystole_results5.txt';
+% Write results to the "bradycardia_results.txt" file
+fileName = 'bradycardia_results6.txt';
 fileID1 = fopen(fileName, 'w');
 
 % Open the alarms true scoring sheet
@@ -17,7 +17,7 @@ else
     error('Could not open ALARMS.txt for results. Exiting...')
 end
 
-fileName = 'asystole_ALARMS.txt';
+fileName = 'Bradycardia_ALARMS.txt';
 fileID2 = fopen(fileName, 'w');
 
 %Add the function on this directory to the MATLAB path
@@ -49,12 +49,12 @@ fprintf(fileID1, 'Script ran on: ');
 fprintf(fileID1, datestr(now,'HH:MM:SS.FFF\n\n'));
 fprintf(fileID2,datestr(now,'HH:MM:SS.FFF\n\n'));
 
-% Only get Asystole values:,  
-i = contains(RECORDS,'a');
+% Only get Bradycardia values:,  
+i = contains(RECORDS,'b');
 RECORDS = RECORDS(i);
-i = contains(ALARMS, 'Asystole');
+i = contains(ALARMS, 'Bradycardia');
 ALARMS = ALARMS(i);
-ASYSTOLE_RESULTS = ALARM_RESULTS(i);
+BRADYCARDIA_RESULTS = ALARM_RESULTS(i);
 
 n_correct = 0;
 n_falsep = 0;
@@ -62,7 +62,7 @@ n_falsen = 0;
 
 for i = 1:length(RECORDS)
     fname=RECORDS{i};
-    alarm_scoring = ASYSTOLE_RESULTS(i);
+    alarm_scoring = BRADYCARDIA_RESULTS(i);
     
     %results(i)=challenge_wjc([data_dir fname],ALARMS{i});
     results = challenge_wjc([data_dir fname],ALARMS{i})
@@ -106,6 +106,8 @@ for i = 1:length(RECORDS)
         fprintf(fileID1, '\n');
         n_falsen = n_falsen + 1;
     end
+    
+    fname
 end;
 
 challenge_score = n_correct / (n_correct + n_falsep + 5*n_falsen);
