@@ -256,7 +256,7 @@ end
         %findpeaks(ecg1, 'MinPeakHeight', max(ecg1)/2);
     end
 
-    if( length(ecg1_locs) > 1 )
+    if(length(ecg1_locs) > 1 )
         
         if( strcmp(alarm_type, 'Asystole') )
             ecg1_locs = horzcat(ecg1_locs, (N_d - N0_d + 1));
@@ -317,7 +317,13 @@ if (~isempty(abp_ind) & length(n_abp_beats)>=2)
     % Physionet is closer to mean
     if (physio_delta < pk2pk_delta )
         % Compare with whats been caculated (Physio is smallest) ABP
-        if(physio_delta < smallest_delta & abpsqi >= sqi_th) % Added the & !!! - March 12
+        if(strcmp(alarm_type, 'Bradycardia'))
+            if(physio_delta < smallest_delta & abpsqi >= sqi_th)
+                selected_signal = abp_phys_hr;
+                smallest_delta = physio_delta;
+                selected_channel = 'ABP';
+            end
+        elseif(physio_delta < smallest_delta) % Added the & !!! - March 12
             selected_signal = abp_phys_hr;
             smallest_delta = physio_delta;
             selected_channel = 'ABP';
@@ -338,16 +344,30 @@ if(~isempty(ppg_ind) & length(n_ppg_beats)>=2 )
     pk2pk_delta = abs(ppg_pk2pk_mean - all_channel_median);
     
         % Physionet is closer to mean
-    if (physio_delta < pk2pk_delta )
-        % Compare with whats been caculated (Physio is smallest) PPG
-        if(physio_delta < smallest_delta)
+    if (physio_delta < pk2pk_delta)
+%         %Compare with whats been caculated (Physio is smallest) PPG
+%         if strcmp(alarm_type, 'Bradycardia') 
+%             if( pk2pk_delta < smallest_delta & ppgsqi >= sqi_th)
+%                 selected_signal = ppg_phys_hr;
+%                 smallest_delta = physio_delta;
+%                 selected_channel = 'PPG';
+%             end
+%         elseif(physio_delta < smallest_delta)
             selected_signal = ppg_phys_hr;
             smallest_delta = physio_delta;
             selected_channel = 'PPG';
-        end
+%         end
     else
-        % Pk2pk is smallest PPG
-        if(pk2pk_delta < smallest_delta & ppgsqi >= sqi_th) % Added the %
+        % Bradycardia special case because PPG quality tends to be weak.
+        % Only take signal if the sqi index is the threshold val
+        if strcmp(alarm_type, 'Bradycardia') 
+            if( pk2pk_delta < smallest_delta & ppgsqi >= sqi_th)
+                selected_signal = pk2pk_ppg_HR;
+                smallest_delta = pk2pk_delta;
+                selected_channel = 'PPG';
+            end
+%         Pk2pk is smallest PPG
+         elseif(pk2pk_delta < smallest_delta)
             selected_signal = pk2pk_ppg_HR;
             smallest_delta = pk2pk_delta;
             selected_channel = 'PPG';
@@ -402,7 +422,7 @@ max_rr=max(selected_signal)/Fs;
 brady_thresh = 50;
 isBrady = 0;
 brady_beats = 3;
-if length(selected_signal) >= brady_beats
+if (length(selected_signal) >= brady_beats & strcmp(alarm_type, 'Bradycardia'))
     brady_count = 0;
     for i = 1:length(selected_signal)
         if( selected_signal(i) < brady_thresh )
