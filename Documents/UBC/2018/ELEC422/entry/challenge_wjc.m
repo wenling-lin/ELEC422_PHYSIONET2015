@@ -8,7 +8,7 @@
 % Pre-Processing Filter Specs Used: http://www.cinc.org/archives/2015/pdf/1181.pdf
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %function alarmResult=challenge(recordName,alarm_type)
-function alarmResult =challenge_(recordName, alarm_type);
+function alarmResult =challenge_wjc(recordName, alarm_type);
 %clear; clear all; clc;
 answers = 'answers.txt';
 % recordName = 'a311l'; Good Data across all channels
@@ -31,6 +31,8 @@ answers = 'answers.txt';
 % recordName = 'a391l'; % One peak but top of a curve (ECG) false asystole
 % recordName = 'a443l'; % One peak but true asystole
 
+recordName = 'a103l';
+alarmType = 'Asystole';
 %%
 %Get all ECG, blood pressure and photoplethysmogram signals
 [~,signal,Fs,siginfo]=rdmat(recordName);
@@ -38,12 +40,14 @@ alarmResult=1;
 description=squeeze(struct2cell(siginfo));
 description=description(4,:);
 
-% Resample signal to 125Hz
+%Resample signal to 125Hz
 Fs=Fs(1);
 if Fs~=125
     signal=resample(signal,125,Fs);
     Fs=125;
 end
+
+%signal = signal';
 
 %% Aquire Signals and Signal Quality Index - Ensure Signals are Viable Before Processing 
 %   Run WABP on the record, which by default will analyze the first ABP, ART, or BP signal
@@ -66,26 +70,31 @@ ecg_signal = ecg1';
 N_d=Fs*5*60; % alarm position % 5 minute point
 N0_d=N_d-Fs*16; % 16s before the alarm % 16 seconds before 5 minute point
 
-if(length(ecg1) < N_d)
-    alarmResult = 'False Alarm'
-    alarmResult = 0;
-    return;
-end
+% if(length(ecg1) < N_d)
+%     alarmResult = 'False Alarm'
+%     alarmResult = 0;
+%     return;
+% end
 
-%ecg_signal = ecg_signal(ecg_signal != NaN);
-[C,L]=wavedec(ecg_signal,8,'db4'); % [approx, detail] as per lecture
-[thr,sorh,keepapp]=ddencmp('den','wv',ecg_signal);
-cleanecg=wdencmp('gbl',C,L,'db4',8,thr,sorh,keepapp);
+filteredSignal = signalPreprocessing(signal);
+ecg1_ind = get_index(description, 'II');
+ecg1 = filteredSignal(:,ecg1_ind);
+ecg1 = ecg1(~isnan(ecg1));
 
-% Clean unneeded variables - Prevents the MEMORY Error from occuring
-clear f_y; clear C; clear L;
+% %ecg_signal = ecg_signal(ecg_signal != NaN);
+% [C,L]=wavedec(ecg_signal,8,'db4'); % [approx, detail] as per lecture
+% [thr,sorh,keepapp]=ddencmp('den','wv',ecg_signal);
+% cleanecg=wdencmp('gbl',C,L,'db4',8,thr,sorh,keepapp);
 
-% Remove Baseline Wander
-opol = 6; %polynomial degree
-ecg_signal = ecg1';
-[p,s,mu] = polyfit((1:numel(ecg_signal)),ecg_signal,opol);
-f_y = polyval(p,(1:numel(ecg_signal)),[],mu);
-ecg_signal_dt = ecg_signal - f_y;
+% % Clean unneeded variables - Prevents the MEMORY Error from occuring
+% clear f_y; clear C; clear L;
+% 
+% % Remove Baseline Wander
+% opol = 6; %polynomial degree
+% ecg_signal = ecg1';
+% [p,s,mu] = polyfit((1:numel(ecg_signal)),ecg_signal,opol);
+% f_y = polyval(p,(1:numel(ecg_signal)),[],mu);
+% ecg_signal_dt = ecg_signal - f_y;
 
 
 N=[];
